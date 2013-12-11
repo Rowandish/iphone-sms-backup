@@ -14,7 +14,7 @@ easy. Be prepared to do a lot of scrolling.
 
 Or, you can you use `sms-backup.py` to backup all your messages in text
 format, CSV format, JSON or HTML table format, and then view them in the data viewer of your
-choice.
+choice. Moreover it raplaces the phone number with the names using the AddressBook Library
 
 Plus, `sms-backup.py` cleans up and allows you to transform your data, in
 order to make your text messages easier to read.
@@ -24,9 +24,6 @@ Transformations possible with `sms-backup.py`:
   * Better date formatting.
   
   * Consistent formatting of phone numbers.
-  
-
-This fork makes the replacement of phone numbers with names using the AddressBook library.
 
 How?
 ----
