@@ -31,6 +31,9 @@ import shutil
 import sqlite3
 import sys
 import tempfile
+from AddressBook import *
+#from adressBookConverter import getPeopleList
+from tableBuilder import msgs_html
 
 from datetime import datetime
 
@@ -84,9 +87,9 @@ def setup_and_parse(parser):
             help="Date format string. Optional. Default: '%(default)s'.")
                  
     format_group.add_argument("-f", "--format", dest="format", 
-            choices = ['human', 'csv', 'json'], default = 'human', 
+            choices = ['human', 'csv', 'json','table'], default = 'human', 
             help="How output is formatted. Valid options: 'human' "
-                 "(fields separated by pipe), 'csv', or 'json'. "
+                 "(fields separated by pipe), 'csv', 'json' or 'table'. "
                  "Optional. Default: '%(default)s'.")
                  
     format_group.add_argument("-m", "--myname", dest="identity", 
@@ -646,6 +649,74 @@ def get_messages_ios6(cursor, query, params, aliases, cmd_args):
         messages.append(msg)
     return messages
 
+#------------------------------------------------------------------------------------------------
+# the method below can be found at http://www.programmish.com/?p=26
+def addressBookToList():
+    """
+    Read the current user's AddressBook database, converting each person
+    in the address book into a Dictionary of values. Some values (addresses,
+    phone numbers, email, etc) can have multiple values, in which case a
+    list of all of those values is stored. The result of this method is
+    a List of Dictionaries, with each person represented by a single record
+    in the list.
+    """
+    ab = ABAddressBook.sharedAddressBook()
+    people = ab.people()
+
+    peopleList = []
+
+    for person in people:
+            thisPerson = {}
+            props = person.allProperties()
+            for prop in props:
+                    if prop == "com.apple.ABPersonMeProperty":
+                        continue
+                    elif prop == "com.apple.ABImageData":
+                        continue
+                    val = person.valueForProperty_(prop)
+                    if type(val) == objc.pyobjc_unicode:
+                            thisPerson[prop.lower()] = val
+                    elif issubclass(val.__class__, NSDate):
+                            thisPerson[prop.lower()] = val.description()
+                    elif type(val) == ABMultiValueCoreDataWrapper:
+                            thisPerson[prop.lower()] = []
+                            for valIndex in range(0, val.count()):
+                                    indexedValue = val.valueAtIndex_(valIndex)
+                                    if type(indexedValue) == objc.pyobjc_unicode:
+                                            thisPerson[prop.lower()].append(indexedValue)
+                                    elif issubclass(indexedValue.__class__, NSDate):
+                                            thisPerson[prop.lower()].append(indexedValue.description())
+                                    elif type(indexedValue) == NSCFDictionary:
+                                            propDict = {}
+                                            for propKey in indexedValue.keys():
+                                                    propValue = indexedValue[propKey]
+                                                    propDict[propKey.lower()] = propValue
+                                            thisPerson[prop.lower()].append(propDict)
+            peopleList.append(thisPerson)
+    return peopleList
+
+def getPeopleList():
+    """
+    Return a dict like:{number1:name1,number2:name2} from the iTunes backup file
+    """
+    people = {}
+    peoplelist = addressBookToList()   
+    for person in peoplelist: #peoplelist e' un array associativo con chili di merdaccia. Scremo
+        if "phone" in person: #se la persona che sto considerando ha un numero di telefono
+            for number in person["phone"]: #quasi sempre questo ciclo viene eseguito una sola volta
+                first = ""
+                fixednum = number[3:] if number[0:3]=="+39" else number #se comincia con +39 eliminalo
+                if "first" in person:           #prendo il nome della persona
+                    first = person["first"]
+                elif "last" in person:          #se non ha un nome provo col cognome
+                    first = person["last"]
+                else:                           #se la persona non ha un nome, metto il numero al posto del nome
+                    first = fixednum
+                people[fixednum] = first
+    return people
+
+#------------------------------------------------------------------------------------------------
+
 def msgs_human(messages, header):
     """
     Return messages, with optional header row. 
@@ -710,13 +781,16 @@ def output(messages, out_file, format, header):
     """Output messages to out_file in format."""
     if out_file:
         fh = open(out_file, 'w')
+    elif format == 'table':
+        logging.warning("No output file provided: using smsTable.html")
+        fh = open("smsTable.html", 'w') #se non ho definito un output uso smsTable.html
     else:
         fh = sys.stdout
         
     if format == 'human': fmt_msgs = msgs_human
     elif format == 'csv': fmt_msgs = msgs_csv
     elif format == 'json': fmt_msgs = msgs_json
-    
+    elif format == 'table': fmt_msgs = msgs_html
     try:
         fh.write(fmt_msgs(messages, header))
     except:
@@ -743,7 +817,9 @@ def main():
         global ORIG_DB, COPY_DB 
         ORIG_DB = args.db_file or find_sms_db()
         COPY_DB = copy_sms_db(ORIG_DB)
-        aliases = alias_map(args.aliases)
+        input_aliases = alias_map(args.aliases)
+        local_aliases = getPeopleList()
+        aliases = dict(input_aliases.items()+local_aliases.items())
 
         conn = None
 
