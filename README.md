@@ -13,7 +13,7 @@ sqlite database. But, if you want to view them all on your iPhone, it's not so
 easy. Be prepared to do a lot of scrolling.
 
 Or, you can you use `sms-backup.py` to backup all your messages in text
-format, CSV format, or JSON, and then view them in the data viewer of your
+format, CSV format, JSON or HTML table format, and then view them in the data viewer of your
 choice.
 
 Plus, `sms-backup.py` cleans up and allows you to transform your data, in
@@ -83,7 +83,7 @@ Examples
 Usage
 =====
     usage: sms-backup.py [-h] [-q | -v] [-a ADDRESS=NAME] [-d FORMAT]
-                         [-f {human,csv,json}] [-m NAME] [-o FILE] [-e EMAIL]
+                         [-f {human,csv,json,table}] [-m NAME] [-o FILE] [-e EMAIL]
                          [-p PHONE] [--no-header] [-i FILE]
 
     optional arguments:
