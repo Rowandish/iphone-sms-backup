@@ -25,7 +25,8 @@ Transformations possible with `sms-backup.py`:
   
   * Consistent formatting of phone numbers.
   
-  * Replacement of phone numbers with names.
+
+This fork makes the replacement of phone numbers with names using the AddressBook library.
 
 How?
 ----
