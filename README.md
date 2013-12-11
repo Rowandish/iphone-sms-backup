@@ -100,9 +100,9 @@ Usage
       -d FORMAT, --date-format FORMAT
                             Date format string. Optional. Default: '%Y-%m-%d
                             %H:%M:%S'.
-      -f {human,csv,json}, --format {human,csv,json}
+      -f {human,csv,json}, --format {human,csv,json,table}
                             How output is formatted. Valid options: 'human'
-                            (fields separated by pipe), 'csv', or 'json'.
+                            (fields separated by pipe), 'csv', 'json' or 'table'.
                             Optional. Default: 'human'.
       -m NAME, --myname NAME
                             Name of iPhone owner in output. Optional. Default
@@ -110,8 +110,8 @@ Usage
 
     Output Options:
       -o FILE, --output FILE
-                            Name of output file. Optional. Default (if not
-                            present): Output to STDOUT.
+                            Name of output file. Optional. Default (if table format is set) is smsTable.html
+                            Default (if not present): Output to STDOUT.
       -e EMAIL, --email EMAIL
                             Limit output to iMessage messages to/from this email
                             address. Can be used multiple times. Optional. Default
